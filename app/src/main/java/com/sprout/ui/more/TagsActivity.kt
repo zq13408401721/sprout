@@ -25,7 +25,7 @@ class TagsActivity:BaseActivity<TagsViewModel,ActivityTagsBinding>(R.layout.acti
 
 
     override fun initData() {
-        TODO("Not yet implemented")
+
     }
 
     override fun initVM() {
@@ -50,11 +50,15 @@ class TagsActivity:BaseActivity<TagsViewModel,ActivityTagsBinding>(R.layout.acti
         recyTags.layoutManager = LinearLayoutManager(this)
         var brandArr = SparseArray<Int>()
         brandArr.put(R.layout.layout_brand_item,BR.brandData)
+        brandList = mutableListOf()
         brandAdapter = BrandAdapter(this,brandList,brandArr,BrandClick())
 
         var goodArr = SparseArray<Int>()
         brandArr.put(R.layout.layout_brand_item,BR.goodData)
+        goodList = mutableListOf()
         goodAdapter = GoodAdapter(this,goodList,goodArr,GoodClick())
+
+        mDataBinding.tagClick = TagsClick()
     }
 
 

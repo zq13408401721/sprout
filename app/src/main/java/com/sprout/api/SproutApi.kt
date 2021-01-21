@@ -1,5 +1,6 @@
 package com.sprout.api
 
+import com.baseclient.base.BaseApi
 import com.baseclient.model.BaseResp
 import com.sprout.model.BrandData
 import com.sprout.model.ChannelData
@@ -10,11 +11,7 @@ import retrofit2.http.Query
 /**
  * 网络请求的Api
  */
-interface SproutApi {
-    var BASE_URL: String
-        get() = "http://sprout.cdwan.cn/api/"
-        set(value) {}
-
+interface SproutApi{
     /**
      * 获取频道数据
      */

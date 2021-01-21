@@ -58,7 +58,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     //导入框架依赖
-    implementation 'com.github.zq13408401721:kotlin-zygote:1.0.3'
+    implementation 'com.github.zq13408401721:kotlin-zygote:1.0.6'
 
     implementation(name:'MyFramework-debug',ext:'aar')
 

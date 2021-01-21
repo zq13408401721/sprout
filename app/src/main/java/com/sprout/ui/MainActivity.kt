@@ -1,5 +1,6 @@
 package com.sprout.ui
 
+import android.content.Intent
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -10,6 +11,7 @@ import com.sprout.ui.discover.DiscoverFragment
 import com.sprout.ui.home.HomeFragment
 import com.sprout.ui.message.MessageFragment
 import com.sprout.ui.mine.MineFragment
+import com.sprout.ui.more.MoreEditorActivity
 
 class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(
     R.layout.activity_main,
@@ -67,7 +69,8 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(
                 transaction.replace(R.id.fragments,discoverFragment)
             }
             R.id.layout_more -> {
-
+                var intent = Intent(mContext,MoreEditorActivity::class.java)
+                startActivity(intent)
             }
             R.id.layout_message -> {
                 mDataBinding.imgMessage.setImageResource(R.mipmap.main_nav_message_hl)
