@@ -2,7 +2,6 @@ package com.sprout.ui.more
 
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -13,28 +12,20 @@ import com.shop.ext.findView
 import com.sprout.R
 import com.sprout.model.BrandData
 import com.sprout.model.GoodData
+import com.sprout.model.ImgData
 import kotlinx.android.synthetic.main.fragment_image.*
 
 class ImageFragment(
     var index:Int,
-    var path:String
-):Fragment() {
-
+    var path:String,
+    var tags:MutableList<ImgData.Tag>
+):Fragment(R.layout.fragment_image) {
     companion object{
-        fun instance(i:Int,path:String):ImageFragment{
-            return ImageFragment(i,path)
+        fun instance(i:Int,path:String,tagList:MutableList<ImgData.Tag>):ImageFragment{
+            return ImageFragment(i,path,tagList)
         }
     }
 
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        var view = inflater.inflate(R.layout.fragment_image,container,false)
-        return view
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if(path.isNotEmpty()){
@@ -56,7 +47,11 @@ class ImageFragment(
             2-> imgTag.setImageResource(R.mipmap.tag_icon_w_commodity)
         }
         var param = ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT,ConstraintLayout.LayoutParams.WRAP_CONTENT)
-        param.setMargins(100,100,0,0) //控制组件的坐标位置
+        param.setMargins(0,0,0,0) //控制组件的坐标位置
+        view.setOnTouchListener(layout_tags)
+        var tag = ImgData.Tag(0f,0f,type,name,0.0, 0.0)
+        tags.add(tag)
+        view.tag = tag
         layout_tags.addView(view,param)
     }
 

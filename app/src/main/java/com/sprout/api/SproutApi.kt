@@ -16,13 +16,15 @@ interface SproutApi{
      * 获取频道数据
      */
     @GET("channel/channel")
-    suspend fun getChannel():BaseResp<ChannelData>
+    suspend fun getChannel():BaseResp<List<ChannelData>>
 
     @GET("tag/brand")
     suspend fun getBrand(@Query("page") page:Int,@Query("size") size:Int):BaseResp<BrandData>
 
-    @GET("tag/good")
+    @GET("tag/goods")
     suspend fun getGood(@Query("page") page:Int,@Query("size") size:Int):BaseResp<GoodData>
+
+
 
 
 
