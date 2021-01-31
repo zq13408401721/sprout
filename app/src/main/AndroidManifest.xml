@@ -17,6 +17,7 @@
         android:name=".app.SproutApp"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.Sprout">
         <activity android:name=".ui.MainActivity">
             <intent-filter>
@@ -35,6 +36,9 @@
         <activity android:name=".ui.more.TagsActivity"/>
         <activity android:name=".ui.more.MoreEditorActivity"/>
         <activity android:name=".ui.more.SubmitMoreActivity"/>
+        <activity android:name=".ui.more.ChannelActivity"/>
+        <activity android:name=".ui.more.ThemeActivity"/>
+        <activity android:name=".ui.more.AddressActivity"/>
     </application>
 
 </manifest>

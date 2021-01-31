@@ -2,10 +2,11 @@ package com.sprout.api
 
 import com.baseclient.base.BaseApi
 import com.baseclient.model.BaseResp
-import com.sprout.model.BrandData
-import com.sprout.model.ChannelData
-import com.sprout.model.GoodData
+import com.sprout.model.*
+import okhttp3.RequestBody
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 /**
@@ -23,6 +24,27 @@ interface SproutApi{
 
     @GET("tag/goods")
     suspend fun getGood(@Query("page") page:Int,@Query("size") size:Int):BaseResp<GoodData>
+
+    /**
+     * 主题数据
+     */
+    @GET("theme/getTheme")
+    suspend fun getTheme():BaseResp<List<ThemeData>>
+
+    /**
+     * 发布动态接口
+     */
+    @POST("trends/submitTrends")
+    suspend fun submitTrends(@Body trends:RequestBody):BaseResp<SubmitTrendsData>
+
+    /**
+     * 获取动态数据
+     */
+    @GET("trends/trendsList")
+    suspend fun trendsList(@Query("command") command:Int,
+                           @Query("channelid") channelid:Int,
+                           @Query("page") page:Int,
+                           @Query("size") size: Int):BaseResp<List<TrendsData>>
 
 
 

@@ -19,8 +19,8 @@
         android:onClick="@{(view)->submitImgClick.itemClick(view.tag)}">
         <ImageView
             android:id="@+id/img"
-            android:layout_width="@dimen/dp_70"
-            android:layout_height="@dimen/dp_70"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/dp_90"
             android:scaleType="centerCrop"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -1,9 +1,15 @@
 package com.sprout.ui.more
 
 import android.util.SparseArray
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewpager.widget.PagerAdapter
+import com.google.android.material.tabs.TabLayout
 import com.shop.base.BaseActivity
+import com.shop.base.BaseFragment
 import com.shop.base.IItemClick
 import com.sprout.BR
 import com.sprout.R
@@ -14,99 +20,53 @@ import com.sprout.ui.more.adapter.BrandAdapter
 import com.sprout.ui.more.adapter.GoodAdapter
 import com.sprout.vm.more.TagsViewModel
 import kotlinx.android.synthetic.main.activity_tags.*
+import kotlinx.android.synthetic.main.fragment_goods.*
 
 class TagsActivity:BaseActivity<TagsViewModel,ActivityTagsBinding>(R.layout.activity_tags,TagsViewModel::class.java) {
 
-    lateinit var brandList:MutableList<BrandData.Data>
-    lateinit var brandAdapter:BrandAdapter
-
-    lateinit var goodList:MutableList<GoodData.Data>
-    lateinit var goodAdapter: GoodAdapter
-
+    var fragments:MutableList<Fragment> = mutableListOf()
+    var titles:List<String> = listOf("品牌","商品","地址")
 
     override fun initData() {
 
     }
 
     override fun initVM() {
-        mViewModel.bList.observe(this, Observer {
-            brandList.clear()
-            brandList.addAll(it.data)
-            recyTags.adapter = brandAdapter
-        })
 
-        mViewModel.gList.observe(this, Observer {
-            goodList.clear()
-            goodList.addAll(it.data)
-            recyTags.adapter = goodAdapter
-        })
     }
 
     override fun initVariable() {
 
     }
 
+    /**
+     * 初始化标签对应的页面
+     */
     override fun initView() {
-        recyTags.layoutManager = LinearLayoutManager(this)
-        var brandArr = SparseArray<Int>()
-        brandArr.put(R.layout.layout_brand_item,BR.brandData)
-        brandList = mutableListOf()
-        brandAdapter = BrandAdapter(this,brandList,brandArr,BrandClick())
-
-        var goodArr = SparseArray<Int>()
-        brandArr.put(R.layout.layout_brand_item,BR.goodData)
-        goodList = mutableListOf()
-        goodAdapter = GoodAdapter(this,goodList,goodArr,GoodClick())
-
-        mDataBinding.tagClick = TagsClick()
+        fragments.add(BrandFragment(1))
+        fragments.add(GoodsFragment(2))
+        fragments.add(AdressFragment(3))
+        tab_tags.setupWithViewPager(viewPager)
+        tab_tags.addTab(tab_tags.newTab())
+        tab_tags.addTab(tab_tags.newTab())
+        tab_tags.addTab(tab_tags.newTab())
+        viewPager.adapter = MyFragmentAdapter(supportFragmentManager)
     }
 
-
-    inner class BrandClick:IItemClick<BrandData.Data>{
-        override fun itemClick(data: BrandData.Data) {
-            intent.putExtra("name",data.name)
-            intent.putExtra("id",data.id)
-            setResult(1,intent)
-            finish()
+    inner class MyFragmentAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
+        override fun getCount(): Int {
+            return fragments.size
         }
 
-    }
-
-    inner class GoodClick:IItemClick<GoodData.Data>{
-        override fun itemClick(data: GoodData.Data) {
-            intent.putExtra("name",data.name)
-            intent.putExtra("id",data.id)
-            setResult(2,intent)
+        override fun getItem(position: Int): Fragment {
+            return fragments.get(position)
         }
 
-    }
-
-    inner class TagsClick{
-        fun click(type:Int){
-            when(type){
-                1->{
-                    if(brandList.size == 0){
-                        mViewModel.getBrand()
-                    }else{
-                        recyTags.adapter = brandAdapter
-                    }
-                }
-                2->{
-                    if(goodList.size == 0){
-                        mViewModel.getGood()
-                    }else{
-                        recyTags.adapter = goodAdapter
-                    }
-                }
-                3->{
-
-                }
-                4->{
-
-                }
-            }
+        override fun getPageTitle(position: Int): CharSequence? {
+            return titles[position].toString()
         }
+
+
+
     }
-
-
 }
