@@ -1,44 +1,62 @@
 package com.sprout.ui.more
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Rect
+import android.util.Log
 import android.util.SparseArray
 import android.view.View
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.alibaba.sdk.android.oss.ClientConfiguration
+import com.alibaba.sdk.android.oss.ClientException
 import com.alibaba.sdk.android.oss.OSSClient
+import com.alibaba.sdk.android.oss.ServiceException
+import com.alibaba.sdk.android.oss.callback.OSSCompletedCallback
+import com.alibaba.sdk.android.oss.callback.OSSProgressCallback
 import com.alibaba.sdk.android.oss.common.auth.OSSCredentialProvider
 import com.alibaba.sdk.android.oss.common.auth.OSSStsTokenCredentialProvider
+import com.alibaba.sdk.android.oss.internal.OSSAsyncTask
+import com.alibaba.sdk.android.oss.model.PutObjectRequest
+import com.alibaba.sdk.android.oss.model.PutObjectResult
 import com.google.gson.Gson
 import com.luck.picture.lib.PictureSelector
 import com.luck.picture.lib.config.PictureConfig
 import com.luck.picture.lib.config.PictureMimeType
 import com.shop.base.BaseActivity
 import com.shop.base.IItemClick
+import com.shop.utils.MyMmkv
 import com.sprout.BR
 import com.sprout.R
 import com.sprout.app.GlideEngine
+import com.sprout.app.Global
 import com.sprout.databinding.ActivitySubmitMoreBinding
 import com.sprout.model.ImgData
 import com.sprout.ui.more.adapter.SubmitImgAdapter
+import com.sprout.utils.BitmapUtils
 import com.sprout.vm.more.SubmitViewModel
 import kotlinx.android.synthetic.main.activity_submit_more.*
-import kotlinx.android.synthetic.main.layout_submit_imgitem.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 
 /**
  * 动态数据的提交
  */
-class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding>(R.layout.activity_submit_more, SubmitViewModel::class.java) {
+class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding>(
+    R.layout.activity_submit_more,
+    SubmitViewModel::class.java
+) {
 
     final var CODE_CHANNEL = 101  //选择频道
     final var CODE_THEME = 102 //选择主题
     final var CODE_ADDRESS = 103 //选择地址
-
-    var bucketName = "2002a"
+    //oss 资源服务器的配置
+    var bucketName = "sprout-app"
     var ossPoint = "http://oss-cn-beijing.aliyuncs.com"
     var key = "LTAI4G1JvHB2FsXvDYMfY56i" //appkey
     var secret = "gIwhFC9Sk4JEkfFR2mkcOz2Uwr6Vid" //密码
@@ -53,8 +71,8 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
     var channelId:Int = 0 //频道id
     lateinit var channelName:String
     var themeId:Int = 0 //主题id
-    lateinit var themeName:String
-    lateinit var address:String  //地址
+    var themeName:String="" //主题名字
+    var address:String=""  //地址
     var lat:Double = 0.0  //经度
     var lng:Double = 0.0  //纬度
     var type:Int = 1
@@ -67,7 +85,10 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 //上一个页面传过来的json字符串数据进行转换
                 var jsonArr = JSONArray(json)
                 for(i in 0 until jsonArr.length()){
-                    var imgData = Gson().fromJson<ImgData>(jsonArr.getString(i), ImgData::class.java)
+                    var imgData = Gson().fromJson<ImgData>(
+                        jsonArr.getString(i),
+                        ImgData::class.java
+                    )
                     imgs.add(imgData)
                 }
                 //处理加号
@@ -116,7 +137,11 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
      * 初始化oss
      */
     private fun initOss() {
-        val credentialProvider: OSSCredentialProvider = OSSStsTokenCredentialProvider(key, secret, "")
+        val credentialProvider: OSSCredentialProvider = OSSStsTokenCredentialProvider(
+            key,
+            secret,
+            ""
+        )
         // 配置类如果不设置，会有默认配置。
         val conf = ClientConfiguration()
         conf.connectionTimeout = 15 * 1000 // 连接超时，默认15秒。
@@ -201,9 +226,9 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
     /**
      * 组装提交的内容
      */
-    fun getSubmitJson():String{
-        var title = edit_title.toString()
-        var mood =edit_mood.toString()
+    fun getSubmitJson(arr: List<String>):String{
+        var title = edit_title.text.toString()
+        var mood =edit_mood.text.toString()
         var json:JSONObject = JSONObject()
         json.put("type", type)
         json.put("title", title)
@@ -217,8 +242,9 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
         when(type){
             1 -> { //图片
                 for (i in 0 until imgs.size) {
+                    if(imgs.get(i).path.isNullOrEmpty()) continue
                     var img = JSONObject()
-                    img.put("url", imgs[i].path)
+                    img.put("url", arr[i])
                     var tags = JSONArray()
                     img.put("tags", tags)
                     for (j in 0 until imgs[i].tags.size) {
@@ -233,8 +259,9 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                         tag.put("lat", tagItem.lat)
                         tags.put(tag)
                     }
-                    json.put("res", res)
+                    res.put(img)
                 }
+                json.put("res", res)
             }
             2 -> {
 
@@ -245,21 +272,14 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
     }
 
     /**
-     * 先上传图片数据
-     */
-    fun uploadImgs(){
-
-    }
-
-    /**
      * 分割线
      */
     inner class ImgItemDecoration:RecyclerView.ItemDecoration(){
         override fun getItemOffsets(
-                outRect: Rect,
-                view: View,
-                parent: RecyclerView,
-                state: RecyclerView.State
+            outRect: Rect,
+            view: View,
+            parent: RecyclerView,
+            state: RecyclerView.State
         ) {
             if (parent.getChildAdapterPosition(view).toInt()%3 == 0){
                 outRect.set(10, 10, 0, 10)
@@ -317,7 +337,10 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
             startActivityForResult(intent, CODE_ADDRESS)
         }
 
+        //当前显示的本地图片的数据
         var imgArr:MutableList<String> = mutableListOf()
+        //上传成功的图片路径数据
+        var urlArr:MutableList<String> = mutableListOf()
 
         /**
          * 提交发布数据
@@ -325,28 +348,98 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
         fun submit(){
 
             for(i in 0 until imgs.size){
-                imgArr.add(imgs.get(i).path!!)
+                if(!imgs.get(i).path.isNullOrEmpty()){
+                    imgArr.add(imgs.get(i).path!!)
+                }
             }
+            urlArr.clear()
             //第一步先上传图片资源到资源服务器
             if(imgs.size > 0){
 
-                //rxjava zip 操作解决多个异步任务完成的监听
-                for(i in 0 until imgs.size){
-                    //图片i - 上传
-                    checkUpload(imgs.get(i).path!!)
+                GlobalScope.launch(Dispatchers.Unconfined) {
+                    for(i in 0 until imgs.size){
+                        if(!imgs.get(i).path.isNullOrEmpty()){
+                            //图片i - 上传
+                            uploadImg(imgs.get(i).path!!)
+                        }
+                    }
                 }
+                //创建协程
+                runBlocking {
+                    // 自定义线程池
+                    /*val coroutineDispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
+                    launch {
 
+                    }.join() //等待协程执行*/
 
-                var content = getSubmitJson()
-                mViewModel.submitTrends(content)
-
+                    //coroutineDispatcher.close() //关闭自定义线程池
+                }
             }
-
-
-
         }
 
-        fun checkUpload(path:String){
+        //上传招聘协程
+        suspend fun uploadImg(path: String){
+            val scaleBitmp: Bitmap = BitmapUtils.getScaleBitmap(
+                path,
+                Global.IMG_WIDTH,
+                Global.IMG_HEIGHT
+            )
+            // 上传图片
+            // 上传图片
+            val bytes: ByteArray = BitmapUtils.getBytesByBitmap(scaleBitmp)
+            val uid: String = MyMmkv.getString("uid")!!
+            val fileName = uid + "/" + System.currentTimeMillis() + Math.random() * 10000 + ".png"
+            val put = PutObjectRequest(bucketName, fileName, bytes)
+            put.setProgressCallback(object : OSSProgressCallback<PutObjectRequest> {
+                override fun onProgress(
+                    request: PutObjectRequest?,
+                    currentSize: Long,
+                    totalSize: Long
+                ) {
+                    //上传进度
+                    Log.i("oss_upload", "$currentSize/$totalSize")
+                }
+
+            })
+
+            val task: OSSAsyncTask<*> = ossClient.asyncPutObject(
+                put,
+                object : OSSCompletedCallback<PutObjectRequest, PutObjectResult> {
+                    override fun onSuccess(request: PutObjectRequest, result: PutObjectResult) {
+                        Log.d("PutObject", "UploadSuccess")
+                        Log.d("ETag", result.eTag)
+                        Log.d("RequestId", result.requestId)
+                        //成功的回调中读取相关的上传文件的信息  生成一个url地址
+                        val url = ossClient.presignPublicObjectURL(
+                            request.bucketName,
+                            request.objectKey
+                        )
+                        checkUpload(path, url)
+                    }
+
+                    override fun onFailure(
+                        request: PutObjectRequest,
+                        clientExcepion: ClientException,
+                        serviceException: ServiceException
+                    ) {
+                        // 请求异常。
+                        if (clientExcepion != null) {
+                            // 本地异常，如网络异常等。
+                            clientExcepion.printStackTrace()
+                        }
+                        if (serviceException != null) {
+                            // 服务异常。
+                            Log.e("ErrorCode", serviceException.errorCode)
+                            Log.e("RequestId", serviceException.requestId)
+                            Log.e("HostId", serviceException.hostId)
+                            Log.e("RawMessage", serviceException.rawMessage)
+                        }
+                    }
+                })
+        }
+
+        fun checkUpload(path: String, url: String){
+            urlArr.add(url)
             for(i in 0 until imgArr.size){
                 if(imgArr.get(i).equals(path)){
                     imgArr.removeAt(i)
@@ -354,7 +447,7 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 }
             }
             if(imgArr.size == 0){
-                var content = getSubmitJson()
+                var content = getSubmitJson(urlArr)
                 mViewModel.submitTrends(content)
             }
         }

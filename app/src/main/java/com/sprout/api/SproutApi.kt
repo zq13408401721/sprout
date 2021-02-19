@@ -4,10 +4,7 @@ import com.baseclient.base.BaseApi
 import com.baseclient.model.BaseResp
 import com.sprout.model.*
 import okhttp3.RequestBody
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
 /**
  * 网络请求的Api
@@ -35,6 +32,7 @@ interface SproutApi{
      * 发布动态接口
      */
     @POST("trends/submitTrends")
+    @Headers("Content-Type:application/json")
     suspend fun submitTrends(@Body trends:RequestBody):BaseResp<SubmitTrendsData>
 
     /**

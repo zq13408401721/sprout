@@ -107,10 +107,12 @@ class MoreEditorActivity:BaseActivity<MoreViewModel, ActivityMoreEditorBinding>(
                     var id = data!!.getIntExtra("id",0)
                     var name = data!!.getStringExtra("name")
                     var pos = viewPager.currentItem
+                    if(fragments.size <= pos) return
                     fragments.get(pos).addTagsToView(1,id,name!!)
                 }else if(resultCode == 2){
                     var id = data!!.getIntExtra("id",0)
                     var name = data!!.getStringExtra("name")
+                    if(fragments.size <= viewPager.currentItem) return
                     fragments.get(viewPager.currentItem).addTagsToView(2,id,name!!)
                 }
             }

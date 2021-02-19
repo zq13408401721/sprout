@@ -9,7 +9,7 @@ class SproutApp:BaseApp() {
     override fun onCreate() {
         super.onCreate()
         BaseApi.baseUrl = "http://sprout.cdwan.cn/api/" //初始化基础地址
-
+        //BaseApi.baseUrl = "http://172.20.10.7:11000/"
     }
 
     fun initMap(){
