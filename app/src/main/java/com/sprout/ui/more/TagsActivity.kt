@@ -22,6 +22,9 @@ import com.sprout.vm.more.TagsViewModel
 import kotlinx.android.synthetic.main.activity_tags.*
 import kotlinx.android.synthetic.main.fragment_goods.*
 
+/**
+ * 用来显示tags标签列表的界面
+ */
 class TagsActivity:BaseActivity<TagsViewModel,ActivityTagsBinding>(R.layout.activity_tags,TagsViewModel::class.java) {
 
     var fragments:MutableList<Fragment> = mutableListOf()

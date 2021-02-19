@@ -16,6 +16,9 @@ import com.sprout.model.GoodData
 import com.sprout.model.ImgData
 import kotlinx.android.synthetic.main.fragment_image.*
 
+/**
+ * 编辑页面图片展示的fragment以及做标签处理
+ */
 class ImageFragment(
     var index:Int,
     var path:String,

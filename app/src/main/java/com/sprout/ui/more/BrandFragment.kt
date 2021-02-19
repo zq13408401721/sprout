@@ -13,6 +13,9 @@ import com.sprout.ui.more.adapter.BrandAdapter
 import com.sprout.vm.more.BrandViewModel
 import kotlinx.android.synthetic.main.fragment_brand.*
 
+/**
+ * 品牌的显示列表页面
+ */
 class BrandFragment(
         var type:Int
 ):BaseFragment<BrandViewModel,FragmentBrandBinding>(R.layout.fragment_brand,BrandViewModel::class.java) {
@@ -47,6 +50,7 @@ class BrandFragment(
 
     inner class BrandClick: IItemClick<BrandData.Data> {
         override fun itemClick(data: BrandData.Data) {
+            //传递数据到MoreEditorActivity页面
             mActivity.intent.putExtra("name",data.name)
             mActivity.intent.putExtra("id",data.id)
             mActivity.setResult(1,mActivity.intent)
