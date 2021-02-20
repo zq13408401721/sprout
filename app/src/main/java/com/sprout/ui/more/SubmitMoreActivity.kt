@@ -6,6 +6,7 @@ import android.graphics.Rect
 import android.util.Log
 import android.util.SparseArray
 import android.view.View
+import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +25,7 @@ import com.google.gson.Gson
 import com.luck.picture.lib.PictureSelector
 import com.luck.picture.lib.config.PictureConfig
 import com.luck.picture.lib.config.PictureMimeType
+import com.luck.picture.lib.tools.ToastUtils
 import com.shop.base.BaseActivity
 import com.shop.base.IItemClick
 import com.shop.utils.MyMmkv
@@ -267,7 +269,6 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
 
             }
         }
-
         return json.toString()
     }
 
@@ -346,7 +347,7 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
          * 提交发布数据
          */
         fun submit(){
-
+            if(!checkSubmitValue()) return
             for(i in 0 until imgs.size){
                 if(!imgs.get(i).path.isNullOrEmpty()){
                     imgArr.add(imgs.get(i).path!!)
@@ -438,6 +439,9 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 })
         }
 
+        /**
+         * 检查图片舒服上传完
+         */
         fun checkUpload(path: String, url: String){
             urlArr.add(url)
             for(i in 0 until imgArr.size){
@@ -450,6 +454,38 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 var content = getSubmitJson(urlArr)
                 mViewModel.submitTrends(content)
             }
+        }
+
+        /**
+         * 检查提交的数据是否已经准备就绪
+         */
+        fun checkSubmitValue():Boolean{
+            var bool = true
+            if(imgs.size <= 1){  //当前是否有资源文件
+                Toast.makeText(mContext,"没有准备好资源文件",Toast.LENGTH_SHORT).show()
+                return false
+            }
+            //判断当前是否选择频道
+            if(channelId <= 0){
+                Toast.makeText(mContext,"请选择对应的频道",Toast.LENGTH_SHORT).show()
+                return false
+            }
+            //判断当前是否选择主题
+            if(themeId <= 0){
+                Toast.makeText(mContext,"请选择对应的主题",Toast.LENGTH_SHORT).show()
+                return false
+            }
+            var titleStr = edit_title.text.toString()
+            if(titleStr.isNullOrEmpty()){
+                Toast.makeText(mContext,"请输入对应的标题",Toast.LENGTH_SHORT).show()
+                return false
+            }
+            var mood = edit_mood.text.toString()
+            if(mood.isNullOrEmpty()){
+                Toast.makeText(mContext,"请输入心情",Toast.LENGTH_SHORT).show()
+                return false
+            }
+            return bool
         }
 
     }

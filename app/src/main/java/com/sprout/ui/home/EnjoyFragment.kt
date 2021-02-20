@@ -8,6 +8,7 @@ import com.sprout.vm.home.EnjoyViewModel
 class EnjoyFragment(var command:Int):BaseFragment<EnjoyViewModel,FragmentEnjoyBinding>(R.layout.fragment_enjoy,EnjoyViewModel::class.java) {
 
     companion object{
+        // command 2 关注
         val instance: EnjoyFragment by lazy { EnjoyFragment(2) }
     }
 

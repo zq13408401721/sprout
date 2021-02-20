@@ -18,6 +18,7 @@ class RecommendFragment(var command:Int):BaseFragment<RecommendViewModel,Fragmen
     lateinit var trendsFragmentAdapter:TrendsFragmentAdapter
 
     companion object{
+        // command 3 推荐
         val instance: RecommendFragment by lazy { RecommendFragment(3) }
     }
 

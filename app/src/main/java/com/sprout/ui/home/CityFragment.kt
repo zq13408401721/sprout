@@ -21,6 +21,7 @@ class CityFragment(var command:Int):BaseFragment<CityViewModel,FragmentCityBindi
     lateinit var cityTrendsAdapter:CityTrendsAdpater
     var list:MutableList<TrendsData> = mutableListOf()
     companion object{
+        // command 1 城市
         val instance: CityFragment by lazy { CityFragment(1) }
     }
 

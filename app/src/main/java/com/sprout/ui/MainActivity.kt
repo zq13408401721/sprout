@@ -33,7 +33,7 @@ class MainActivity : BaseActivity<MainViewModel, ActivityMainBinding>(
         //模拟已经登录
         MyMmkv.setValue("uid","21244f6f-4aed-4914-b824-9deead555c79")
         MyMmkv.setValue(Constants.token_key,"sprout-token")
-        MyMmkv.setValue(Constants.token,"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMjEyNDRmNmYtNGFlZC00OTE0LWI4MjQtOWRlZWFkNTU1Yzc5IiwicmFuZG9tIjoiNmQ4YjVhZm0zdCIsImlhdCI6MTYxMzc0NjMyOH0.xvfRudAFKQq_WCbrKCLzitw4wZErrbWQ8ssU0IrkXKo")
+        MyMmkv.setValue(Constants.token,"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMjEyNDRmNmYtNGFlZC00OTE0LWI4MjQtOWRlZWFkNTU1Yzc5IiwicmFuZG9tIjoiYnp3NGxnOTRzcCIsImlhdCI6MTYxMzc4NTMzMX0.fJ7b7KRhxXvKkAycgfRb6AnGlIikpXaBlwX0xMOXKkE")
     }
 
     override fun initVM() {

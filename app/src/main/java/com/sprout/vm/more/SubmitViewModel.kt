@@ -18,6 +18,7 @@ class SubmitViewModel:BaseViewModel<SproutRepository>(InJection.repository) {
      * 提交动态数据
      */
     fun submitTrends(json:String){
+        //提交动态的参数对象
         var body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"),json)
         viewModelScope.launch {
             var result = repository.submitTrends(body)
