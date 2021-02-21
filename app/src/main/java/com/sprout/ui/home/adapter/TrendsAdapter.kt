@@ -11,6 +11,7 @@ import com.shop.base.IItemClick
 import com.shop.ext.findView
 import com.sprout.BR
 import com.sprout.R
+import com.sprout.app.Global
 import com.sprout.model.TrendsData
 
 class TrendsAdapter(
@@ -25,14 +26,19 @@ class TrendsAdapter(
         Glide.with(context).load(data.url).into(img)
         var imgType = binding.root.findView<ImageView>(R.id.img_type).value
         imgType.visibility = View.GONE
-        if(data.url.endsWith(".png") || data.url.endsWith(".jpg") || data.url.endsWith(".gif")){
-            if(data.res.size > 1){
-                imgType.setImageResource(R.mipmap.icon_photos)
+        when(data.type){
+            Global.TYPE_IMG -> {
+                if(data.res.size > 1){
+                    imgType.setImageResource(R.mipmap.icon_photos)
+                    imgType.visibility = View.VISIBLE
+                }else{
+                    imgType.visibility = View.GONE
+                }
+            }
+            Global.TYPE_VIDEO -> {
+                imgType.setImageResource(R.mipmap.icon_video)
                 imgType.visibility = View.VISIBLE
             }
-        }else if(data.url.endsWith(".mp4")){
-            imgType.setImageResource(R.mipmap.icon_video)
-            imgType.visibility = View.VISIBLE
         }
     }
 

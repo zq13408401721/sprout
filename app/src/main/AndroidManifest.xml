@@ -39,6 +39,14 @@
         <activity android:name=".ui.more.ChannelActivity"/>
         <activity android:name=".ui.more.ThemeActivity"/>
         <activity android:name=".ui.more.AddressActivity"/>
+
+        <activity android:name="com.iknow.android.features.trim.VideoTrimmerActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name="com.iknow.android.features.record.VideoRecordActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name="com.iknow.android.features.select.VideoSelectActivity"
+            android:screenOrientation="portrait"/>
+
     </application>
 
 </manifest>

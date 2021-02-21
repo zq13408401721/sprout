@@ -1,15 +1,31 @@
 package com.sprout.app
 
+import android.content.Context
+import android.util.Log
 import com.baidu.mapapi.CoordType
 import com.baidu.mapapi.SDKInitializer
 import com.baseclient.app.BaseApp
 import com.baseclient.base.BaseApi
+import com.iknow.android.utils.ToastUtil
+import iknow.android.utils.BaseUtils
+import nl.bravobit.ffmpeg.FFmpeg
 
 class SproutApp:BaseApp() {
     override fun onCreate() {
         super.onCreate()
         //BaseApi.baseUrl = "http://sprout.cdwan.cn/api/" //初始化基础地址
         BaseApi.baseUrl = "http://192.168.3.186:11000/"
+
+        //视频编辑
+        BaseUtils.init(this)
+        initFFmpegBinary(this)
+    }
+
+    //ffmpeg库的初始化
+    private fun initFFmpegBinary(context: Context) {
+        if (!FFmpeg.getInstance(context).isSupported) {
+            Log.e("ZApplication", "Android cup arch not supported!")
+        }
     }
 
     fun initMap(){

@@ -77,28 +77,38 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
     var address:String=""  //地址
     var lat:Double = 0.0  //经度
     var lng:Double = 0.0  //纬度
-    var type:Int = 1
+    var type:Int = 1  //区分当前是图片还是视频 1图片 2视频
+
     override fun initData() {
         var from = intent.getIntExtra("from", 0)
         //默认的提交流程
         if(from == 0){
-            var json = intent.getStringExtra("data")
-            if(json!!.isNotEmpty()){
-                //上一个页面传过来的json字符串数据进行转换
-                var jsonArr = JSONArray(json)
-                for(i in 0 until jsonArr.length()){
-                    var imgData = Gson().fromJson<ImgData>(
-                        jsonArr.getString(i),
-                        ImgData::class.java
-                    )
-                    imgs.add(imgData)
+            if(intent.hasExtra("img_data")){  //图片
+                type = 1
+                var json = intent.getStringExtra("img_data")
+                if(json!!.isNotEmpty()){
+                    //上一个页面传过来的json字符串数据进行转换
+                    var jsonArr = JSONArray(json)
+                    for(i in 0 until jsonArr.length()){
+                        var imgData = Gson().fromJson<ImgData>(
+                                jsonArr.getString(i),
+                                ImgData::class.java
+                        )
+                        imgs.add(imgData)
+                    }
+                    //处理加号
+                    if(imgs.size < max_img){
+                        var imgData = ImgData(null, mutableListOf())
+                        imgs.add(imgData)
+                    }
                 }
-                //处理加号
-                if(imgs.size < max_img){
-                    var imgData = ImgData(null, mutableListOf())
-                    imgs.add(imgData)
-                }
+            }else if(intent.hasExtra("video_data")){  //视频
+                type = 2
+                var videoPath = intent.getStringExtra("video_data")
+                var imgData = ImgData(videoPath, mutableListOf(),2)
+                imgs.add(imgData)
             }
+
         }else{ //草稿再次编辑
             //去本地数据库取值
 
@@ -265,8 +275,14 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 }
                 json.put("res", res)
             }
-            2 -> {
-
+            2 -> {  //视频资源数据的处理
+                for (i in 0 until arr.size) {
+                    if (arr.get(i).isNullOrEmpty()) continue
+                    var img = JSONObject()
+                    img.put("url", arr[i])
+                    res.put(img)
+                }
+                json.put("res",res)
             }
         }
         return json.toString()
@@ -356,29 +372,22 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
             urlArr.clear()
             //第一步先上传图片资源到资源服务器
             if(imgs.size > 0){
-
                 GlobalScope.launch(Dispatchers.Unconfined) {
                     for(i in 0 until imgs.size){
                         if(!imgs.get(i).path.isNullOrEmpty()){
                             //图片i - 上传
-                            uploadImg(imgs.get(i).path!!)
+                            if(type == 1){
+                                uploadImg(imgs.get(i).path!!)
+                            }else if(type == 2){
+                                uploadVideo(imgs.get(i).path!!)
+                            }
                         }
                     }
-                }
-                //创建协程
-                runBlocking {
-                    // 自定义线程池
-                    /*val coroutineDispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
-                    launch {
-
-                    }.join() //等待协程执行*/
-
-                    //coroutineDispatcher.close() //关闭自定义线程池
                 }
             }
         }
 
-        //上传招聘协程
+        //上传图片协程
         suspend fun uploadImg(path: String){
             val scaleBitmp: Bitmap = BitmapUtils.getScaleBitmap(
                 path,
@@ -439,6 +448,59 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 })
         }
 
+        //上传视频
+        fun uploadVideo(path:String){
+            val uid: String = MyMmkv.getString("uid")!!
+            val fileName = uid + "/" + System.currentTimeMillis() + Math.random() * 10000 + ".mp4"
+            val put = PutObjectRequest(bucketName, fileName, path)
+            put.setProgressCallback(object : OSSProgressCallback<PutObjectRequest> {
+                override fun onProgress(
+                        request: PutObjectRequest?,
+                        currentSize: Long,
+                        totalSize: Long
+                ) {
+                    //上传进度
+                    Log.i("oss_upload", "$currentSize/$totalSize")
+                }
+
+            })
+
+            val task: OSSAsyncTask<*> = ossClient.asyncPutObject(
+                    put,
+                    object : OSSCompletedCallback<PutObjectRequest, PutObjectResult> {
+                        override fun onSuccess(request: PutObjectRequest, result: PutObjectResult) {
+                            Log.d("PutObject", "UploadSuccess")
+                            Log.d("ETag", result.eTag)
+                            Log.d("RequestId", result.requestId)
+                            //成功的回调中读取相关的上传文件的信息  生成一个url地址
+                            val url = ossClient.presignPublicObjectURL(
+                                    request.bucketName,
+                                    request.objectKey
+                            )
+                            checkUpload(path, url)
+                        }
+
+                        override fun onFailure(
+                                request: PutObjectRequest,
+                                clientExcepion: ClientException,
+                                serviceException: ServiceException
+                        ) {
+                            // 请求异常。
+                            if (clientExcepion != null) {
+                                // 本地异常，如网络异常等。
+                                clientExcepion.printStackTrace()
+                            }
+                            if (serviceException != null) {
+                                // 服务异常。
+                                Log.e("ErrorCode", serviceException.errorCode)
+                                Log.e("RequestId", serviceException.requestId)
+                                Log.e("HostId", serviceException.hostId)
+                                Log.e("RawMessage", serviceException.rawMessage)
+                            }
+                        }
+                    })
+        }
+
         /**
          * 检查图片舒服上传完
          */
@@ -451,7 +513,7 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 }
             }
             if(imgArr.size == 0){
-                var content = getSubmitJson(urlArr)
+                var content:String = getSubmitJson(urlArr)
                 mViewModel.submitTrends(content)
             }
         }
@@ -461,7 +523,7 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
          */
         fun checkSubmitValue():Boolean{
             var bool = true
-            if(imgs.size <= 1){  //当前是否有资源文件
+            if(type == 1 && imgs.size <= 1 || type == 2 && imgs.size == 0){  //当前是否有资源文件
                 Toast.makeText(mContext,"没有准备好资源文件",Toast.LENGTH_SHORT).show()
                 return false
             }

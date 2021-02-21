@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import com.iknow.android.features.select.VideoSelectActivity
 import com.luck.picture.lib.PictureSelector
 import com.luck.picture.lib.config.PictureConfig
 import com.luck.picture.lib.config.PictureMimeType
@@ -17,6 +18,7 @@ import com.sprout.model.ImgData
 import com.sprout.utils.BitmapUtils
 import com.sprout.vm.more.MoreViewModel
 import kotlinx.android.synthetic.main.activity_more_editor.*
+import org.jetbrains.anko.alert
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
@@ -26,9 +28,12 @@ import java.io.IOException
  */
 class MoreEditorActivity:BaseActivity<MoreViewModel, ActivityMoreEditorBinding>(R.layout.activity_more_editor, MoreViewModel::class.java) {
     val CODE_TAG = 99
+    val CODE_VIDEO = 100
     var imgList:MutableList<String> = mutableListOf()
     var fragments:MutableList<ImageFragment> = mutableListOf()
     lateinit var fAdapter:FAdapter
+
+    var PAGE_TYPE:Int = Global.TYPE_IMG
 
     //当前界面tag相关数据
     var imgArray:MutableList<ImgData> = mutableListOf()
@@ -59,14 +64,41 @@ class MoreEditorActivity:BaseActivity<MoreViewModel, ActivityMoreEditorBinding>(
 
         txt_next.setOnClickListener {
             var intent = Intent(this,SubmitMoreActivity::class.java)
-            intent.putExtra("data",decodeImgs())
+            intent.putExtra("img_data",decodeImgs())
             startActivity(intent)
         }
 
         //打开相册选取图片
-        openPhoto()
+        openChangeAlert()
     }
 
+    /**
+     * 打开一个选中图片或者视频的弹框
+     */
+    private fun openChangeAlert(){
+        alert("打开本地图片或者视频"){
+            positiveButton("打开本地图库"){
+                PAGE_TYPE = Global.TYPE_IMG
+                openPhoto()
+            }
+            negativeButton("打开本地视频"){
+                PAGE_TYPE = Global.TYPE_VIDEO
+                openVideo()
+            }
+        }.show()
+    }
+
+    /**
+     * 打开本地视频
+     */
+    private fun openVideo(){
+        var intent = Intent(this,VideoSelectActivity::class.java)
+        startActivityForResult(intent,CODE_VIDEO)
+    }
+
+    /**
+     * 打开本地图库
+     */
     private fun openPhoto(){
         PictureSelector.create(this)
                 .openGallery(PictureMimeType.ofImage())
@@ -87,19 +119,27 @@ class MoreEditorActivity:BaseActivity<MoreViewModel, ActivityMoreEditorBinding>(
                 // onResult Callback
                 val selectList = PictureSelector.obtainMultipleResult(data)
                 if (selectList.size == 0) return
-                //获取本地图片的选择地址，上传到服务器
-                //头像的压缩和二次采样
-                //把选中的图片插入到列表
-                for(i in 0 until selectList.size){
-                    imgList.add(selectList.get(i).path) //保留图片的绝对路径
-                    //图片数据的初始化
-                    var imgData = ImgData(selectList.get(i).path, mutableListOf())
-                    imgArray.add(imgData)
-                    var fragment = ImageFragment.instance(i,selectList.get(i).path,imgData.tags)
-                    fragments.add(fragment)
+                when(PAGE_TYPE){
+                    Global.TYPE_IMG -> {
+                        //获取本地图片的选择地址，上传到服务器
+                        //头像的压缩和二次采样
+                        //把选中的图片插入到列表
+                        for(i in 0 until selectList.size){
+                            imgList.add(selectList.get(i).path) //保留图片的绝对路径
+                            //图片数据的初始化
+                            var imgData = ImgData(selectList.get(i).path, mutableListOf())
+                            imgArray.add(imgData)
+                            var fragment = ImageFragment.instance(i,selectList.get(i).path,imgData.tags)
+                            fragments.add(fragment)
 
+                        }
+                        fAdapter.notifyDataSetChanged()
+                    }
+                    Global.TYPE_VIDEO -> {
+
+                    }
                 }
-                fAdapter.notifyDataSetChanged()
+
             }
             //处理TAG设置返回
             CODE_TAG -> {
@@ -114,6 +154,15 @@ class MoreEditorActivity:BaseActivity<MoreViewModel, ActivityMoreEditorBinding>(
                     var name = data!!.getStringExtra("name")
                     if(fragments.size <= viewPager.currentItem) return
                     fragments.get(viewPager.currentItem).addTagsToView(2,id,name!!)
+                }
+            }
+            CODE_VIDEO -> {  //处理视频返回
+                if(data != null && data.hasExtra("newVideoPath")){
+                    var intent = Intent(this,SubmitMoreActivity::class.java)
+                    intent.putExtra("video_data",data.getStringExtra("newVideoPath"))
+                    startActivity(intent)
+                }else{
+                    //没有接收到视频压缩处理的数据
                 }
             }
             else -> {
