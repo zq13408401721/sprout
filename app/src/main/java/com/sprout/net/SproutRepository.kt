@@ -55,4 +55,39 @@ class SproutRepository: BaseRepository<SproutApi>(SproutApi::class.java) {
     }
 
 
+    /********************WeiXin*******************/
+    suspend fun wxToken(map:Map<String,String>) = withContext(Dispatchers.IO){
+        api.getWxAccessToken(map)
+    }
+
+    /**
+     * 微信token验证
+     */
+    suspend fun wxAuthToken(accesstoken:String,openid:String) = withContext(Dispatchers.IO){
+        api.authToken(accesstoken,openid)
+    }
+
+    /**
+     * 微信token刷新
+     */
+    suspend fun wxRefreshToken(appid:String,refresshtoken:String,grant_type:String="refresh_token") = withContext(Dispatchers.IO){
+        api.refreshToken(appid,grant_type,refresshtoken)
+    }
+
+    /**
+     * 微信用户信息获取
+     */
+    suspend fun wxUserInfo(accesstoken:String,openid:String) = withContext(Dispatchers.IO){
+        api.wxUserInfo(accesstoken,openid)
+    }
+
+
+    /**
+     * 微信订单信息
+     */
+    suspend fun wxOrder() = withContext(Dispatchers.IO){
+        api.wxOrder()
+    }
+
+
 }

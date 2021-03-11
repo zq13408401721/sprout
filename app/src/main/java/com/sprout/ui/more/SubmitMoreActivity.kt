@@ -364,6 +364,7 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
          */
         fun submit(){
             if(!checkSubmitValue()) return
+            //把除了加号按钮以外的数据提取出来
             for(i in 0 until imgs.size){
                 if(!imgs.get(i).path.isNullOrEmpty()){
                     imgArr.add(imgs.get(i).path!!)
@@ -372,15 +373,14 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
             urlArr.clear()
             //第一步先上传图片资源到资源服务器
             if(imgs.size > 0){
+                // 创建协程
                 GlobalScope.launch(Dispatchers.Unconfined) {
-                    for(i in 0 until imgs.size){
-                        if(!imgs.get(i).path.isNullOrEmpty()){
-                            //图片i - 上传
-                            if(type == 1){
-                                uploadImg(imgs.get(i).path!!)
-                            }else if(type == 2){
-                                uploadVideo(imgs.get(i).path!!)
-                            }
+                    for(i in 0 until imgArr.size){
+                        //图片i - 上传
+                        if(type == 1){
+                            uploadImg(imgArr.get(i))
+                        }else if(type == 2){
+                            uploadVideo(imgArr.get(i))
                         }
                     }
                 }
@@ -394,7 +394,6 @@ class SubmitMoreActivity:BaseActivity<SubmitViewModel, ActivitySubmitMoreBinding
                 Global.IMG_WIDTH,
                 Global.IMG_HEIGHT
             )
-            // 上传图片
             // 上传图片
             val bytes: ByteArray = BitmapUtils.getBytesByBitmap(scaleBitmp)
             val uid: String = MyMmkv.getString("uid")!!

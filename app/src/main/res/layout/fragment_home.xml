@@ -15,7 +15,9 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/dp_50"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent" />
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:tabMode="scrollable"
+            android:padding="@dimen/dp_0"/>
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/viewPager"

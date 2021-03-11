@@ -5,4 +5,5 @@ import com.sprout.net.InJection
 import com.sprout.net.SproutRepository
 
 class MainViewModel:BaseViewModel<SproutRepository>(InJection.repository) {
+
 }

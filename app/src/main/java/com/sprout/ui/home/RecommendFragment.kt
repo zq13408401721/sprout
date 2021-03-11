@@ -1,5 +1,7 @@
 package com.sprout.ui.home
 
+import android.util.TypedValue
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
@@ -10,6 +12,7 @@ import com.sprout.R
 import com.sprout.databinding.FragmentRecommendBinding
 import com.sprout.vm.home.RecommendViewModel
 import kotlinx.android.synthetic.main.fragment_recommend.*
+import org.jetbrains.anko.singleLine
 
 class RecommendFragment(var command:Int):BaseFragment<RecommendViewModel,FragmentRecommendBinding>(R.layout.fragment_recommend,RecommendViewModel::class.java) {
 
@@ -46,6 +49,36 @@ class RecommendFragment(var command:Int):BaseFragment<RecommendViewModel,Fragmen
         viewPager.adapter = trendsFragmentAdapter
         tab_channel.setupWithViewPager(viewPager)
         tab_channel.tabMode = TabLayout.MODE_SCROLLABLE
+        tab_channel.addOnTabSelectedListener(object:TabLayout.OnTabSelectedListener{
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                var txtView:TextView
+                if(tab!!.customView == null){
+                    txtView = TextView(activity)
+                }else{
+                    txtView = tab!!.customView as TextView
+                }
+                var fontSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX,16f,resources.displayMetrics)
+                txtView.setTextSize(TypedValue.COMPLEX_UNIT_SP,fontSize)
+                txtView.setTextColor(resources.getColor(R.color.col_tab_select))
+                txtView.setText(tab!!.text)
+                txtView.singleLine = true
+                tab.customView = txtView
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                if(tab!!.customView != null){
+                    var fontSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX,14f,resources.displayMetrics)
+                    var txtView = tab!!.customView as TextView
+                    txtView.setTextSize(TypedValue.COMPLEX_UNIT_SP,fontSize)
+                    txtView.setTextSize(fontSize)
+                    txtView.setTextColor(resources.getColor(R.color.col_tab_unselect))
+                }
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+            }
+
+        })
     }
 
     inner class TrendsFragmentAdapter(fm:FragmentManager):FragmentPagerAdapter(fm){

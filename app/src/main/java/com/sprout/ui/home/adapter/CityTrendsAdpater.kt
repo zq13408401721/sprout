@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.ImageView
 import androidx.databinding.ViewDataBinding
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.shop.base.BaseAdapter
 import com.shop.base.IItemClick
 import com.shop.ext.findView
@@ -24,11 +25,11 @@ class CityTrendsAdpater(
     override fun bindData(binding: ViewDataBinding, data: TrendsData, layId: Int) {
         binding.setVariable(BR.cityClick,itemClick)
         var imgCity = binding.root.findView<ImageView>(R.id.img_city).value
-        Glide.with(context).load(data.url).into(imgCity)
         var imgType = binding.root.findView<ImageView>(R.id.img_type).value
         //动态数据资源的图标
         when(data.type){
             Global.TYPE_IMG -> {
+                Glide.with(context).load(data.url).into(imgCity)
                 if(data.res.size > 1){
                     imgType.setImageResource(R.mipmap.ic_type_imgs)
                     imgType.visibility = View.VISIBLE
@@ -39,6 +40,16 @@ class CityTrendsAdpater(
             Global.TYPE_VIDEO -> {
                 imgType.setImageResource(R.mipmap.ic_type_play)
                 imgType.visibility = View.VISIBLE
+                //视频取第一秒作为封面图
+                Glide.with(context)
+                        .setDefaultRequestOptions(
+                                RequestOptions()
+                                        .frame(1000000)
+                                        .centerCrop()
+                                        .error(R.mipmap.ic_video_error) //可以忽略
+                        )
+                        .load(data.url)
+                        .into(imgCity)
             }
         }
     }
